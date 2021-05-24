@@ -55,7 +55,7 @@ class CVDBError(Exception):
         Constructor.
 
         Args:
-            *args: arg[0] should be message and arg[1] should be SpdbError.
+            *args: arg[0] should be message and arg[1] should be CVDBError.
         """
 
         # Log

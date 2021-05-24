@@ -50,18 +50,26 @@ class CloudVolumeDB:
         out_cube = Cube.create_cube(resource, extent)
         
         # NOTE: Refer to Tim's changes for channel method to check storage type. 
-        if channel.is_cloudvolume():
+        if channel.storage_type != "clouvol":
+            raise CVDBError(f"Storage type {channel.storage_type} not configured for cloudvolume.", 701)
+
+        # NOTE: Refer to Tim's changes for S3 bucket and path. 
             # NOTE: Refer to Tim's changes for S3 bucket and path. 
-            #vol = CloudVolume(f"s3://{self.bucket}/{resource.get_collection()}/{resource.get_experiment()}/{resource.get_channel()}", mip=resolution, fill_missing=True)
-            try:
-                vol = CloudVolume(resource.get_s3path(), mip=resolution, fill_missing=True)
-                data = vol[
+        # NOTE: Refer to Tim's changes for S3 bucket and path. 
+        try:
+            vol = CloudVolume(f"{channel.bucket}/{channel.cv_path}", 
+            mip=resolution, use_https=True, fill_missing=True, **self.cv_config)
+            data = vol[
+                corner[0]: corner[0]+extent[0], 
                     corner[0]: corner[0]+extent[0], 
+                corner[0]: corner[0]+extent[0], 
+                corner[1]: corner[1]+extent[1], 
                     corner[1]: corner[1]+extent[1], 
-                    corner[2]: corner[2]+extent[2]
-                    ]
-            except Exception as e: 
-                raise CVDBError(f"Error downloading cloudvolume data: {e}")
+                corner[1]: corner[1]+extent[1], 
+                corner[2]: corner[2]+extent[2]
+                ]
+        except Exception as e: 
+            raise CVDBError(f"Error downloading cloudvolume data: {e}")
             out_cube.add_data(data, corner)
             return out_cube
         
