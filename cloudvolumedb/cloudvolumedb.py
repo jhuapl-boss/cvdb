@@ -20,7 +20,7 @@ class CloudVolumeDB:
     """
     Wrapper interface for cloudvolume read access to bossDB.
     """
-    def __init__(self, cv_config):
+    def __init__(self, cv_config=None):
         self.cv_config = cv_config
 
     # Main Interface Methods
