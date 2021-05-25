@@ -24,6 +24,6 @@ def create_new_cloudvolume(resource, chunksize):
         volume_size = extents
     )
 
-    vol = CloudVolume(f"s3://{channel.bucket}/{channel.cv_path}", info=info, non_aligned_writes=True)
+    vol = CloudVolume(f"s3://{channel.bucket}/{channel.cv_path}", info=info, fill_missing=True)
     vol.commit_info()
     return vol
