@@ -1,3 +1,4 @@
+import unittest
 import numpy as np
 from cloudvolume import CloudVolume
 
@@ -29,7 +30,7 @@ class CloudvolumeDBImageDataTestMixin(object):
             coord_frame.y_stop - coord_frame.y_start,
             coord_frame.z_stop - coord_frame.z_start
         ]
-        data = cube.data
+        data = np.squeeze(cube.data).T
         info = CloudVolume.create_new_info(
             num_channels = 1,
             layer_type = 'image' if channel.type == 'image' else 'segmentation', 
@@ -41,7 +42,7 @@ class CloudvolumeDBImageDataTestMixin(object):
             volume_size = extents
         )
 
-        vol = CloudVolume(f"s3://{channel.bucket}/{channel.cv_path}", info=info)
+        vol = CloudVolume(f"s3://{channel.bucket}/{channel.cv_path}", info=info, non_aligned_writes=True)
         vol.commit_info()
 
         vol[
@@ -65,7 +66,7 @@ class CloudvolumeDBImageDataTestMixin(object):
 
         np.testing.assert_array_equal(cube1.data, cube2.data)
 
-    def test_cutout_misalgined_single(self, fake_get_region):
+    def test_cutout_misalgined_single(self):
         """Test the cutout method - misaligned - single"""
         # Generate random data
         cube1 = Cube.create_cube(self.resource, self.CHUNKSIZE)
@@ -83,7 +84,7 @@ class CloudvolumeDBImageDataTestMixin(object):
     def test_cutout_aligned_multiple(self):
         """Test the cutout method - aligned - multiple"""
         # Generate random data
-        extents = [4*x for x in self.CHUNKSIZE] 
+        extents = [3*x for x in self.CHUNKSIZE] 
         cube1 = Cube.create_cube(self.resource, extents)
         cube1.random()
 
@@ -96,9 +97,9 @@ class CloudvolumeDBImageDataTestMixin(object):
 
         np.testing.assert_array_equal(cube1.data, cube2.data)
 
-    def test_cutout_misalgined_multiple(self, fake_get_region):
+    def test_cutout_misalgined_multiple(self):
         """Test the cutout method - misaligned - multiple"""
-        extents = [4*x for x in self.CHUNKSIZE] 
+        extents = [3*x for x in self.CHUNKSIZE] 
         # Generate random data
         cube1 = Cube.create_cube(self.resource, extents)
         cube1.random()

@@ -244,7 +244,7 @@ class Channel:
 
     """
     def __init__(self, name, description, ch_type, datatype, base_resolution, sources, related,
-                 default_time_sample, downsample_status, storage_type, cv_path):
+                 default_time_sample, downsample_status, storage_type, bucket, cv_path):
         self.name = name
         self.description = description
         self.type = ch_type
@@ -255,6 +255,7 @@ class Channel:
         self.default_time_sample = default_time_sample
         self.downsample_status = downsample_status
         self.storage_type = storage_type
+        self.bucket = bucket
         self.cv_path = cv_path
 
     def is_image(self):

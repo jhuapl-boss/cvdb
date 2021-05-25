@@ -16,8 +16,8 @@ import unittest
 import numpy as np
 import json
 
-from spdb.project import BossResourceBasic
-from spdb.project.test.resource_setup import get_image_dict, get_anno_dict
+from cvdb.project import BossResourceBasic
+from cvdb.project.test.resource_setup import get_image_dict, get_anno_dict
 
 
 class TestBasicResource(unittest.TestCase):

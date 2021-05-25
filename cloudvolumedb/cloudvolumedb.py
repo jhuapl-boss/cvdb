@@ -16,6 +16,8 @@ import numpy as np
 from cloudvolume import CloudVolume
 from .cube import Cube
 from .error import CVDBError
+
+
 class CloudVolumeDB:
     """
     Wrapper interface for cloudvolume read access to bossDB.
@@ -50,28 +52,23 @@ class CloudVolumeDB:
         out_cube = Cube.create_cube(resource, extent)
         
         # NOTE: Refer to Tim's changes for channel method to check storage type. 
-        if channel.storage_type != "clouvol":
+        if channel.storage_type != "cloudvol":
             raise CVDBError(f"Storage type {channel.storage_type} not configured for cloudvolume.", 701)
 
         # NOTE: Refer to Tim's changes for S3 bucket and path. 
-            # NOTE: Refer to Tim's changes for S3 bucket and path. 
-        # NOTE: Refer to Tim's changes for S3 bucket and path. 
         try:
-            vol = CloudVolume(f"{channel.bucket}/{channel.cv_path}", 
-            mip=resolution, use_https=True, fill_missing=True, **self.cv_config)
+            vol = CloudVolume(f"s3://{channel.bucket}/{channel.cv_path}", 
+            mip=resolution, use_https=True, fill_missing=True)
             data = vol[
-                corner[0]: corner[0]+extent[0], 
-                    corner[0]: corner[0]+extent[0], 
-                corner[0]: corner[0]+extent[0], 
-                corner[1]: corner[1]+extent[1], 
-                    corner[1]: corner[1]+extent[1], 
-                corner[1]: corner[1]+extent[1], 
+                corner[0]: corner[0]+extent[0],
+                corner[1]: corner[1]+extent[1],
                 corner[2]: corner[2]+extent[2]
                 ]
+            data = np.array(data.T)
         except Exception as e: 
             raise CVDBError(f"Error downloading cloudvolume data: {e}")
-            out_cube.add_data(data, corner)
-            return out_cube
+        out_cube.set_data(data)
+        return out_cube
         
     def write_cuboid(self, resource, corner, resolution, cuboid_data, time_sample_start=0, iso=False, to_black=False):
         """ Write a 3D/4D volume to the key-value store. Used by API/cache in consistent mode as it reconciles writes
