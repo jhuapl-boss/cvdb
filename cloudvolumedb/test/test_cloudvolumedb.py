@@ -5,6 +5,7 @@ from cloudvolume import CloudVolume
 from cvdb.cloudvolumedb import Cube, CloudVolumeDB, CVDBError
 from cvdb.project import BossResourceBasic
 from cvdb.project.test.resource_setup import get_image_dict, get_anno_dict
+from .setup import create_new_cloudvolume
 
 class CloudvolumeDBImageDataTestMixin(object):
 
@@ -23,29 +24,9 @@ class CloudvolumeDBImageDataTestMixin(object):
         Returns:
             True if cube written succesfully, False otherwise.
         """
-        channel = resource.get_channel()
-        coord_frame = resource.get_coord_frame()
-        extents = [
-            coord_frame.x_stop - coord_frame.x_start,
-            coord_frame.y_stop - coord_frame.y_start,
-            coord_frame.z_stop - coord_frame.z_start
-        ]
         data = np.squeeze(cube.data).T
-        info = CloudVolume.create_new_info(
-            num_channels = 1,
-            layer_type = 'image' if channel.type == 'image' else 'segmentation', 
-            data_type = channel.datatype, 
-            encoding = 'raw', 
-            resolution = [ coord_frame.x_voxel_size, coord_frame.y_voxel_size, coord_frame.z_voxel_size ], 
-            voxel_offset = [ coord_frame.x_start, coord_frame.y_start, coord_frame.z_start ],
-            chunk_size = self.CHUNKSIZE, 
-            volume_size = extents
-        )
 
-        vol = CloudVolume(f"s3://{channel.bucket}/{channel.cv_path}", info=info, non_aligned_writes=True)
-        vol.commit_info()
-
-        vol[
+        self.vol[
             corner[0]: corner[0]+data.shape[0], 
             corner[1]: corner[1]+data.shape[1], 
             corner[2]: corner[2]+data.shape[2]
@@ -84,7 +65,7 @@ class CloudvolumeDBImageDataTestMixin(object):
     def test_cutout_aligned_multiple(self):
         """Test the cutout method - aligned - multiple"""
         # Generate random data
-        extents = [3*x for x in self.CHUNKSIZE] 
+        extents = [2*x for x in self.CHUNKSIZE] 
         cube1 = Cube.create_cube(self.resource, extents)
         cube1.random()
 
@@ -99,7 +80,7 @@ class CloudvolumeDBImageDataTestMixin(object):
 
     def test_cutout_misalgined_multiple(self):
         """Test the cutout method - misaligned - multiple"""
-        extents = [3*x for x in self.CHUNKSIZE] 
+        extents = [2*x for x in self.CHUNKSIZE] 
         # Generate random data
         cube1 = Cube.create_cube(self.resource, extents)
         cube1.random()
@@ -116,36 +97,35 @@ class CloudvolumeDBImageDataTestMixin(object):
 
 class TestCloudvolumeDBImage8Data(CloudvolumeDBImageDataTestMixin, unittest.TestCase):
 
-    def setUp(self):
+    @classmethod
+    def setUpClass(cls):
         """ Set everything up for testing """
-        self.data = get_image_dict()
-        self.resource = BossResourceBasic(self.data)
+        # Set up BossResource
+        cls.data = get_image_dict()
+        cls.resource = BossResourceBasic(cls.data)
 
-
-    def tearDown(self):
-        pass
+        # Set up external cloudvolume instance
+        cls.vol = create_new_cloudvolume(cls.resource, cls.CHUNKSIZE)
 
 
 class TestCloudvolumeDBImage16Data(CloudvolumeDBImageDataTestMixin, unittest.TestCase):
 
-
-    def setUp(self):
+    @classmethod
+    def setUpClass(cls):
         """ Set everything up for testing """
-        self.data = get_image_dict(uint16=True)
-        self.resource = BossResourceBasic(self.data)
+        cls.data = get_image_dict(uint16=True)
+        cls.resource = BossResourceBasic(cls.data)
 
-
-    def tearDown(self):
-        pass
+        # Set up external cloudvolume instance
+        cls.vol = create_new_cloudvolume(cls.resource, cls.CHUNKSIZE)
 
 class TestCloudvolumeDBAnnotation64Data(CloudvolumeDBImageDataTestMixin, unittest.TestCase):
 
-
-    def setUp(self):
+    @classmethod
+    def setUpClass(cls):
         """ Set everything up for testing """
-        self.data = get_anno_dict()
-        self.resource = BossResourceBasic(self.data)
-
-
-    def tearDown(self):
-        pass
+        cls.data = get_anno_dict()
+        cls.resource = BossResourceBasic(cls.data)
+        
+        # Set up external cloudvolume instance
+        cls.vol = create_new_cloudvolume(cls.resource, cls.CHUNKSIZE)
