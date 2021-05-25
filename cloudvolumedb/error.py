@@ -15,6 +15,7 @@
 import logging
 from enum import IntEnum
 
+
 def logger(who):
     return logging.getLogger(__name__).getChild(who)
 
@@ -25,6 +26,7 @@ class ErrorCodes(IntEnum):
 
     CVDB errors are 701-799
     """
+
     CVDB_ERROR = 700
     DATATYPE_NOT_SUPPORTED = 701
     FUTURE = 702
@@ -58,10 +60,8 @@ class CVDBError(Exception):
             *args: arg[0] should be message and arg[1] should be CVDBError.
         """
 
-        # Log
-        # TODO: Look into removing boss logger dependency
         if len(args) > 1:
-            log = logger('CVDBError')
+            log = logger("CVDBError")
             log.error("CVDBError - Message: {0} - Code: {1}".format(args[0], args[1]))
             self.message = args[0]
             self.error_code = args[1]
@@ -72,6 +72,5 @@ class CVDBError(Exception):
             self.error_code = ErrorCodes.CVDB_ERROR
             return
 
-        self.message = 'No error message given.'
+        self.message = "No error message given."
         self.error_code = ErrorCodes.CVDB_ERROR
-

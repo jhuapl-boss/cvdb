@@ -22,11 +22,22 @@ class CloudVolumeDB:
     """
     Wrapper interface for cloudvolume read access to bossDB.
     """
+
     def __init__(self, cv_config=None):
         self.cv_config = cv_config
 
-    # Main Interface Methods
-    def cutout(self, resource, corner, extent, resolution, time_sample_range=None, filter_ids=None, iso=False, access_mode="cache"):
+    # Main READ interface method
+    def cutout(
+        self,
+        resource,
+        corner,
+        extent,
+        resolution,
+        time_sample_range=None,
+        filter_ids=None,
+        iso=False,
+        access_mode="cache",
+    ):
         """Extract a cube of arbitrary size. Need not be aligned to cuboid boundaries.
 
         corner represents the location of the cutout and extent the size.  As an example in 1D, if asking for
@@ -50,27 +61,52 @@ class CloudVolumeDB:
         """
         channel = resource.get_channel()
         out_cube = Cube.create_cube(resource, extent)
-        
-        # NOTE: Refer to Tim's changes for channel method to check storage type. 
-        if channel.storage_type != "cloudvol":
-            raise CVDBError(f"Storage type {channel.storage_type} not configured for cloudvolume.", 701)
 
-        # NOTE: Refer to Tim's changes for S3 bucket and path. 
+        # NOTE: Refer to Tim's changes for channel method to check storage type.
+        if channel.storage_type != "cloudvol":
+            raise CVDBError(
+                f"Storage type {channel.storage_type} not configured for cloudvolume.",
+                701,
+            )
+
+        # NOTE: Refer to Tim's changes for S3 bucket and path.
         try:
-            vol = CloudVolume(f"s3://{channel.bucket}/{channel.cv_path}", 
-            mip=resolution, use_https=True, fill_missing=True)
+            # Accessing HTTPS version of dataset. This is READ-ONLY and PUBLIC-ONLY, but much faster to download.
+            vol = CloudVolume(
+                f"s3://{channel.bucket}/{channel.cv_path}",
+                mip=resolution,
+                use_https=True,
+                fill_missing=True,
+            )
+
+            # Data is downloaded by providing XYZ indicies.
             data = vol[
-                corner[0]: corner[0]+extent[0],
-                corner[1]: corner[1]+extent[1],
-                corner[2]: corner[2]+extent[2]
-                ]
+                corner[0] : corner[0] + extent[0],
+                corner[1] : corner[1] + extent[1],
+                corner[2] : corner[2] + extent[2],
+            ]
+
+            # Data returned as cloudvolume VolumeCutout object in XYZT order.
+            # Here we recast it to numpy array and transpose it to TZYX order.
             data = np.array(data.T)
-        except Exception as e: 
+
+        except Exception as e:
             raise CVDBError(f"Error downloading cloudvolume data: {e}")
+
         out_cube.set_data(data)
         return out_cube
-        
-    def write_cuboid(self, resource, corner, resolution, cuboid_data, time_sample_start=0, iso=False, to_black=False):
+
+    # Main WRITE interface method
+    def write_cuboid(
+        self,
+        resource,
+        corner,
+        resolution,
+        cuboid_data,
+        time_sample_start=0,
+        iso=False,
+        to_black=False,
+    ):
         """ Write a 3D/4D volume to the key-value store. Used by API/cache in consistent mode as it reconciles writes
 
         If cuboid_data.ndim == 4, data in time-series format - assume t,z,y,x

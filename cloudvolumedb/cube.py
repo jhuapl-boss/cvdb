@@ -86,7 +86,7 @@ class Cube(metaclass=ABCMeta):
         Assumes all time samples are present in the smaller cube
 
         Args:
-            input_cube (spdb.cube.Cube): Input Cube instance from which to merge data
+            input_cube (CVDB.cube.Cube): Input Cube instance from which to merge data
             index: relative morton ID indicating where to insert the data
 
         Returns:
@@ -149,7 +149,7 @@ class Cube(metaclass=ABCMeta):
         try:
             return self.pack_array(self.data[:, :, :, :])
         except Exception as e:
-            raise SpdbError("Failed to compress cube. {}".format(e),
+            raise CVDBError("Failed to compress cube. {}".format(e),
                             ErrorCodes.SERIALIZATION_ERROR)
 
     def to_blosc_by_time_index(self, time_index=0):
@@ -172,7 +172,7 @@ class Cube(metaclass=ABCMeta):
             # Index into the data array with time.  Return a 4D array
             return self.pack_array(np.expand_dims(self.data[time_index - self.time_range[0], :, :, :], axis=0))
         except Exception as e:
-            raise SpdbError("Failed to compress cube. {}".format(e),
+            raise CVDBError("Failed to compress cube. {}".format(e),
                             ErrorCodes.SERIALIZATION_ERROR)
 
     def unpack_array(self, data, num_time_points=1):
@@ -188,7 +188,7 @@ class Cube(metaclass=ABCMeta):
             (np.ndarray): The resulting serialized and compressed byte array
         """
         if not self.datatype:
-            raise SpdbError("Cube instance must have datatype parameter set to enable deserialization.",
+            raise CVDBError("Cube instance must have datatype parameter set to enable deserialization.",
                             ErrorCodes.SERIALIZATION_ERROR)
 
         raw_data = blosc.decompress(data)
@@ -252,7 +252,7 @@ class Cube(metaclass=ABCMeta):
                 #self.z_dim, self.y_dim, self.x_dim = self.cube_size = list(self.data.shape)[1:]
 
         except Exception as e:
-            raise SpdbError("Failed to decompress database cube. {}".format(e),
+            raise CVDBError("Failed to decompress database cube. {}".format(e),
                             ErrorCodes.SERIALIZATION_ERROR)
 
         self._created_from_zeros = False
@@ -272,7 +272,7 @@ class Cube(metaclass=ABCMeta):
 
         """
         if self.data.dtype != input_data.dtype:
-            raise SpdbError("Conflicting data types for overwrite.",
+            raise CVDBError("Conflicting data types for overwrite.",
                             ErrorCodes.DATATYPE_MISMATCH)
 
         if not time_sample_range:

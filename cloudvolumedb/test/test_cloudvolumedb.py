@@ -1,3 +1,17 @@
+# Copyright 2021 The Johns Hopkins University Applied Physics Laboratory
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 import unittest
 import numpy as np
 from cloudvolume import CloudVolume
@@ -7,11 +21,12 @@ from cvdb.project import BossResourceBasic
 from cvdb.project.test.resource_setup import get_image_dict, get_anno_dict
 from .setup import create_new_cloudvolume
 
+
 class CloudvolumeDBImageDataTestMixin(object):
 
     CHUNKSIZE = (512, 512, 16)
 
-    def write_test_cube(self, cv, resource, res, cube, corner=(0,0,0)):
+    def write_test_cube(self, cv, resource, res, cube, corner=(0, 0, 0)):
         """
         Method to write data to test read operations.
         Args:
@@ -27,10 +42,10 @@ class CloudvolumeDBImageDataTestMixin(object):
         data = np.squeeze(cube.data).T
 
         self.vol[
-            corner[0]: corner[0]+data.shape[0], 
-            corner[1]: corner[1]+data.shape[1], 
-            corner[2]: corner[2]+data.shape[2]
-            ] = data
+            corner[0] : corner[0] + data.shape[0],
+            corner[1] : corner[1] + data.shape[1],
+            corner[2] : corner[2] + data.shape[2],
+        ] = data
 
     def test_cutout_aligned_single(self):
         """Test the cutout method - aligned - single"""
@@ -65,9 +80,9 @@ class CloudvolumeDBImageDataTestMixin(object):
 
     def test_cutout_aligned_multiple(self):
         """Test the cutout method - aligned - multiple"""
-        
-        extents = [2*self.CHUNKSIZE[0], 2*self.CHUNKSIZE[1], self.CHUNKSIZE[2]] 
-        
+
+        extents = [2 * self.CHUNKSIZE[0], 2 * self.CHUNKSIZE[1], self.CHUNKSIZE[2]]
+
         # Generate random data
         cube1 = Cube.create_cube(self.resource, extents)
         cube1.random()
@@ -84,8 +99,8 @@ class CloudvolumeDBImageDataTestMixin(object):
     @unittest.skip("temporary skip: cloudvolume doesn't like misaligned writes")
     def test_cutout_misalgined_multiple(self):
         """Test the cutout method - misaligned - multiple"""
-        extents = [2*self.CHUNKSIZE[0], 2*self.CHUNKSIZE[1], self.CHUNKSIZE[2]]  
-        
+        extents = [2 * self.CHUNKSIZE[0], 2 * self.CHUNKSIZE[1], self.CHUNKSIZE[2]]
+
         # Generate random data
         cube1 = Cube.create_cube(self.resource, extents)
         cube1.random()
@@ -101,7 +116,6 @@ class CloudvolumeDBImageDataTestMixin(object):
 
 
 class TestCloudvolumeDBImage8Data(CloudvolumeDBImageDataTestMixin, unittest.TestCase):
-
     @classmethod
     def setUpClass(cls):
         """ Set everything up for testing """
@@ -114,7 +128,6 @@ class TestCloudvolumeDBImage8Data(CloudvolumeDBImageDataTestMixin, unittest.Test
 
 
 class TestCloudvolumeDBImage16Data(CloudvolumeDBImageDataTestMixin, unittest.TestCase):
-
     @classmethod
     def setUpClass(cls):
         """ Set everything up for testing """
@@ -125,14 +138,14 @@ class TestCloudvolumeDBImage16Data(CloudvolumeDBImageDataTestMixin, unittest.Tes
         # Set up external cloudvolume instance
         cls.vol = create_new_cloudvolume(cls.resource, cls.CHUNKSIZE)
 
-class TestCloudvolumeDBAnnotation64Data(CloudvolumeDBImageDataTestMixin, unittest.TestCase):
 
+class TestCloudvolumeDBAnnotation64Data(CloudvolumeDBImageDataTestMixin, unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         """ Set everything up for testing """
         # Set up BossResource
         cls.data = get_anno_dict()
         cls.resource = BossResourceBasic(cls.data)
-        
+
         # Set up external cloudvolume instance
         cls.vol = create_new_cloudvolume(cls.resource, cls.CHUNKSIZE)
