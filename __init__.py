@@ -1,2 +1,2 @@
-from .cloudvolumedb import *
+from .cvdb import *
 from .project import *
