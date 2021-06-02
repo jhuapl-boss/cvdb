@@ -21,10 +21,6 @@ __version__ = '0.0.1'
 
 import os
 import glob
-import shutil
-import tempfile
-import subprocess
-from pathlib import Path
 
 from setuptools import setup, find_packages
 from setuptools.command.install import install
@@ -38,18 +34,6 @@ def read(filename):
 def read_list(filename):
     return [l for l in read(filename).split('\n')
               if l.strip() != '' and not l.startswith('#')]
-
-### SPDB Resource File Download ###
-with tempfile.TemporaryDirectory() as tmp_dir:
-    # TODO: Change to integration branch once merged
-    command = ["git", "clone", "-q", "-b", "cvdb-support", "https://github.com/jhuapl-boss/spdb.git", tmp_dir]
-    ret = subprocess.run(command, capture_output=True)
-    if ret.returncode != 0:
-        raise ChildProcessError(f"Error cloning SPDB: {ret.stderr}")
-    src_path = Path(tmp_dir) / 'spdb' / 'project'
-    dest_path = Path(__file__).resolve().parent / 'project'
-    shutil.copytree(str(src_path), str(dest_path))
-
 
 setup(
     name='cvdb',
@@ -72,6 +56,3 @@ setup(
         'microns',
     ],
 )
-
-### Clean-up ###
-shutil.rmtree(dest_path)
