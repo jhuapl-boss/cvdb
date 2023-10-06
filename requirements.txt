@@ -1,4 +1,4 @@
-numpy==1.18.1
-cloud-volume==5.3.2
+numpy==1.23.4
+cloud-volume==8.26.0
 blosc
 pillow
